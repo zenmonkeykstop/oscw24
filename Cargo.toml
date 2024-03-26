@@ -1,0 +1,13 @@
+[package]
+name = "oscw24"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+url = "2"
+tokio = { version = "1", features = ["full"] }
+openmls = { git = "https://github.com/openmls/openmls" }
+openmls_basic_credential = { git = "https://github.com/openmls/openmls" }
+openmls_rust_crypto = { git = "https://github.com/openmls/openmls" }
+api_client = { git = "https://github.com/phnx-im/minimal-ds-client" }
+minimal-ds-types = { git = "https://github.com/phnx-im/minimal-ds-client" }
