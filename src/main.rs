@@ -140,75 +140,36 @@ impl Client {
     /// Create a new group and store the group state in the client
     async fn create_group(&mut self) -> DsGroupId {
         // Sample a fresh group ID
-        let group_id = DsGroupId::new();
 
         // Create a new MlsGroup
-        let group = MlsGroup::new_with_group_id(
-            self.crypto_backend(),
-            self.signer(),
-            &build_group_create_config(),
-            GroupId::from_slice(group_id.as_slice()),
-            self.credential_with_key.clone(),
-        )
-        .unwrap();
 
         // Export a group info from the the group
-        let group_info = group
-            .export_group_info(self.crypto_backend().crypto(), self.signer(), false)
-            .unwrap();
 
         // Create the group on the DS
-        self.api_client
-            .create_group(&group_info, &group.export_ratchet_tree())
-            .await
-            .unwrap();
 
         // Store the group locally
-        self.groups.insert(group_id, group);
 
         // Return the group ID
-        group_id
+        todo!()
     }
 
     /// Add new members to the group with the given ID
     async fn add_members_to_group(&mut self, group_id: DsGroupId, new_members: &[DsClientId]) {
         // Fetch key packages for the new members from the DS
-        let mut key_packages = Vec::new();
-        for new_member in new_members {
-            let key_package = self
-                .api_client
-                .fetch_key_package(new_member.clone())
-                .await
-                .unwrap()
-                .unwrap();
-            let key_package = key_package
-                .validate(self.crypto_backend().crypto(), ProtocolVersion::default())
-                .unwrap();
-            key_packages.push(key_package);
-        }
 
         // Add the new members to the group locally
-        let group = self.groups.get_mut(&group_id).unwrap();
-        let (message, welcome, group_info_option) = group
-            .add_members(&self.crypto_backend, &self.signer, &key_packages)
-            .unwrap();
 
         // Distribute the group message through the DS
-        self.api_client
-            .distribute_group_message(&message, group_info_option.map(|gi| gi.into()).as_ref())
-            .await
-            .unwrap();
 
         // Merge the pending commit into the (local) group state
-        group.merge_pending_commit(&self.crypto_backend).unwrap();
 
         // Distribute the welcome message to the new members through the DS
-        self.api_client.distribute_welcome(&welcome).await.unwrap();
+        todo!()
     }
 
     /// Fetch messages from the DS
     async fn fetch_messages(&mut self) -> Vec<MlsMessageIn> {
-        self.api_client.fetch_messages().await.unwrap()
+        todo!()
     }
 
     /// Process messages and return any decrypted application messages
@@ -217,73 +178,28 @@ impl Client {
         messages: Vec<MlsMessageIn>,
     ) -> Vec<(DsGroupId, ApplicationMessage)> {
         // Go through all messages individually
-        let mut application_messages = Vec::new();
-        for message in messages {
-            // Extract the message body
 
-            // Depending on the message body, either
-            // - process it through an existing group
-            // - create a new group from a welcome message
+        // Extract the message body
 
-            let pm = match message.extract() {
-                MlsMessageBodyIn::PublicMessage(pm) => ProtocolMessage::from(pm),
-                MlsMessageBodyIn::PrivateMessage(pm) => ProtocolMessage::from(pm),
-                // Commented out for now. Once `new_from_welcome` takes an
-                // actual Welcome as input, we can use this instead of having to
-                // clone the `message` above.
-                MlsMessageBodyIn::Welcome(welcome) => {
-                    let staged_welcome = StagedWelcome::new_from_welcome(
-                        &self.crypto_backend,
-                        &build_group_join_config(),
-                        welcome,
-                        None,
-                    )
-                    .unwrap();
-                    let group = staged_welcome.into_group(&self.crypto_backend).unwrap();
-                    // For now we just overwrite groups if there is a group id collision.
-                    self.groups
-                        .insert(group.group_id().clone().try_into().unwrap(), group);
-                    continue;
-                }
-                MlsMessageBodyIn::GroupInfo(_) | MlsMessageBodyIn::KeyPackage(_) => continue,
-            };
+        // Depending on the message body, either
+        // - process it through an existing group
+        // - create a new group from a welcome message
 
-            let group_id = DsGroupId::try_from(pm.group_id().clone()).unwrap();
-            let group = self.groups.get_mut(&group_id).unwrap();
-            // In the case of a public or private message, process the resulting
-            // `ProcessedMessage` depending on the type of message
-            // - if it's a proposal, store it in the group
-            // - if it's a commit, merge it into the group
-            // - if it's an application message, return it
-            let processed_message = group.process_message(&self.crypto_backend, pm).unwrap();
-            match processed_message.into_content() {
-                ProcessedMessageContent::ApplicationMessage(application_message) => {
-                    application_messages.push((group_id, application_message))
-                }
-                ProcessedMessageContent::ProposalMessage(qp) => group.store_pending_proposal(*qp),
-                ProcessedMessageContent::ExternalJoinProposalMessage(qp) => {
-                    group.store_pending_proposal(*qp)
-                }
-                ProcessedMessageContent::StagedCommitMessage(staged_commit) => group
-                    .merge_staged_commit(&self.crypto_backend, *staged_commit)
-                    .unwrap(),
-            }
-        }
-        application_messages
+        // In the case of a public or private message, process the resulting
+        // `ProcessedMessage` depending on the type of message
+        // - if it's a proposal, store it in the group
+        // - if it's a commit, merge it into the group
+        // - if it's an application message, return it
+
+        todo!()
     }
 
     /// Send an application message to the group with the given ID
     async fn send_application_message(&mut self, group_id: DsGroupId, payload: &[u8]) {
-        let group = self.groups.get_mut(&group_id).unwrap();
         // Create an application message
-        let message = group
-            .create_message(&self.crypto_backend, &self.signer, payload)
-            .unwrap();
+
         // Distribute the message through the DS
-        self.api_client
-            .distribute_group_message(&message, None)
-            .await
-            .unwrap();
+        todo!()
     }
 }
 
@@ -300,6 +216,8 @@ async fn main() {
     // Alice creates a group
     let group_id = client_1.create_group().await;
 
+    println!("Part 1 done, great job!");
+
     // Alice adds Bob to the group
     client_1
         .add_members_to_group(group_id, &[client2.api_client.client_id()])
@@ -310,6 +228,8 @@ async fn main() {
 
     // Bob processes messages (the returned list will be empty, as alice did not send any application messages yet)
     let _decrypted_messages = client2.process_messages(messages).await;
+
+    println!("Part 2 done, keep up the good work!");
 
     // Alice sends an application message to the group
     client_1
@@ -327,5 +247,5 @@ async fn main() {
     // Check that the message is actually correct
     assert_eq!(application_message.into_bytes(), b"Hi Bob!");
 
-    println!("Success!")
+    println!("Success! You are now an MLS expert!")
 }
