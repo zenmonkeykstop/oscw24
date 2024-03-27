@@ -11,3 +11,4 @@ openmls_basic_credential = { git = "https://github.com/openmls/openmls" }
 openmls_rust_crypto = { git = "https://github.com/openmls/openmls" }
 api_client = { git = "https://github.com/phnx-im/minimal-ds-client" }
 minimal-ds-types = { git = "https://github.com/phnx-im/minimal-ds-client" }
+rand = "0.8"

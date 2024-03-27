@@ -120,7 +120,7 @@ impl Client {
             .collect::<Vec<_>>();
 
         // Register the new client with the DS.
-        let ds_url = Url::parse("https://ds.openmls.tech").unwrap();
+        let ds_url = Url::parse("http://ds.openmls.tech:8080/minimal-ds").unwrap();
         let unregistered_api_client = UnregisteredApiClient::new(ds_url);
 
         let api_client = unregistered_api_client
@@ -177,7 +177,7 @@ impl Client {
         for new_member in new_members {
             let key_package = self
                 .api_client
-                .fetch_key_package(*new_member)
+                .fetch_key_package(new_member.clone())
                 .await
                 .unwrap()
                 .unwrap();
@@ -290,36 +290,42 @@ impl Client {
 #[tokio::main]
 async fn main() {
     // Create a new client
-    let mut alice = Client::register("alice").await;
+    let client1_name = format!("client-{}", rand::random::<u64>());
+    let mut client_1 = Client::register(&client1_name).await;
 
     // Create another client
-    let mut bob = Client::register("bob").await;
+    let client2_name = format!("client-{}", rand::random::<u64>());
+    let mut client2 = Client::register(&client2_name).await;
 
     // Alice creates a group
-    let group_id = alice.create_group().await;
+    let group_id = client_1.create_group().await;
 
     // Alice adds Bob to the group
-    alice
-        .add_members_to_group(group_id, &[bob.api_client.client_id()])
+    client_1
+        .add_members_to_group(group_id, &[client2.api_client.client_id()])
         .await;
 
     // Bob fetches messages
-    let messages = bob.fetch_messages().await;
+    let messages = client2.fetch_messages().await;
 
     // Bob processes messages (the returned list will be empty, as alice did not send any application messages yet)
-    let _decrypted_messages = bob.process_messages(messages).await;
+    let _decrypted_messages = client2.process_messages(messages).await;
 
     // Alice sends an application message to the group
-    alice.send_application_message(group_id, b"Hi Bob!").await;
+    client_1
+        .send_application_message(group_id, b"Hi Bob!")
+        .await;
 
     // Bob fetches messages again
-    let messages = bob.fetch_messages().await;
+    let messages = client2.fetch_messages().await;
 
     // Bob processes messages
-    let mut decrypted_messages = bob.process_messages(messages).await;
+    let mut decrypted_messages = client2.process_messages(messages).await;
 
     let (_group_id, application_message) = decrypted_messages.pop().unwrap();
 
     // Check that the message is actually correct
     assert_eq!(application_message.into_bytes(), b"Hi Bob!");
+
+    println!("Success!")
 }
