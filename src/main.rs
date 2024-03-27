@@ -120,7 +120,7 @@ impl Client {
             .collect::<Vec<_>>();
 
         // Register the new client with the DS.
-        let ds_url = Url::parse("http://ds.openmls.tech:8080/minimal-ds").unwrap();
+        let ds_url = Url::parse("https://ds.openmls.tech/minimal-ds").unwrap();
         let unregistered_api_client = UnregisteredApiClient::new(ds_url);
 
         let api_client = unregistered_api_client
