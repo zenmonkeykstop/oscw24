@@ -6,9 +6,11 @@ edition = "2021"
 [dependencies]
 url = "2"
 tokio = { version = "1", features = ["full"] }
-openmls = { git = "https://github.com/openmls/openmls" }
-openmls_basic_credential = { git = "https://github.com/openmls/openmls" }
-openmls_rust_crypto = { git = "https://github.com/openmls/openmls" }
-api_client = { git = "https://github.com/phnx-im/minimal-ds-client" }
-minimal-ds-types = { git = "https://github.com/phnx-im/minimal-ds-client" }
+openmls = { git = "https://github.com/openmls/openmls", rev = "f3c10c1f0d26e95065da8267eb09ede6c2c31102" }
+openmls_basic_credential = { git = "https://github.com/openmls/openmls", rev="f3c10c1f0d26e95065da8267eb09ede6c2c31102" }
+openmls_rust_crypto = { git = "https://github.com/openmls/openmls", rev="f3c10c1f0d26e95065da8267eb09ede6c2c31102" }
+# api_client = { git = "https://github.com/phnx-im/minimal-ds-client" }
+api_client = { path = "../minimal-ds-client/api_client" }
+# minimal-ds-types = { git = "https://github.com/phnx-im/minimal-ds-client" }
+minimal-ds-types = { path = "../minimal-ds-client/types" }
 rand = "0.8"
